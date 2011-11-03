@@ -49,18 +49,12 @@ private def getConfig(config, configName) {
 }
 
 private def getInputModel(inputConfig) {
-	def inputDatabase = getInputDatabase inputConfig
-	def inputPlatform = createPlatform inputDatabase, inputConfig
-	return inputPlatform.readModelFromDatabase(inputConfig.database)	
-}
-
-private def getInputDatabase(inputConfig) {
 	inputConfig.with {
 	  if (jdbc) {
-			return createDataSource(jdbc)
+		  return readJdbcInput(jdbc, inputConfig)
 	  }
 	  else if (xmlFile) {
-			return new DatabaseIO().read(xmlFile);
+			return readXmlInput(xmlFile)
 	  }
 	  else {
 			quit "Input configuration does not contain a 'jdbc' or 'xmlFile' specification"
@@ -68,35 +62,32 @@ private def getInputDatabase(inputConfig) {
 	}
 }
 
-private def getOutputPlatform(outputConfig) {
-	def outputDatabase = getOutputDatabase outputConfig
-	createPlatform(outputDatabase, outputConfig)
+private def readJdbcInput(jdbc, inputConfig) {
+	def dataSource = createDataSource(jdbc)
+	def inputPlatform = createPlatform dataSource, inputConfig
+	inputPlatform.readModelFromDatabase(inputConfig.database)	
 }
 
-private def getOutputDatabase(outputConfig) {
+private def readXmlInput(xmlFileName) {
+	def xmlFile = new File(xmlFileName)
+	if (!xmlFile.canRead()) {
+		quit "Input file ${xmlFileName} was not found or cannot be read"
+	}
+	new DatabaseIO().read(xmlFileName)	
+}
+
+private def getOutputPlatform(outputConfig) {
 	outputConfig.with {
 	  if (jdbc) {
-			return createDataSource(jdbc)
+			createPlatform createDataSource(jdbc), outputConfig
 	  }
 		else if (dialect) {
-			return dialect
+			createPlatform dialect, outputConfig
 		}
 	}
 }
 
-private def createDataSource(jdbc) {
-	return new BasicDataSource(url: jdbc.url, driverClassName: jdbc.driverClassName, username: jdbc.username, password: jdbc.password)
-}
-
-private def createPlatform(database, config) {
-	def outputPlatform = PlatformFactory.createNewPlatformInstance(database)	
-	if (!outputPlatform) {
-		quit "Could not create create database model for configuration $config"
-	}
-	outputPlatform
-}
-
-private def writeOutput(inputModel, outputPlatform, outputConfig) {
+private void writeOutput(inputModel, outputPlatform, outputConfig) {
 	if (outputConfig.sqlFile) {
 		writeSqlOutput inputModel, outputPlatform, outputConfig.sqlFile 
 	}
@@ -105,7 +96,7 @@ private def writeOutput(inputModel, outputPlatform, outputConfig) {
 	}
 }
 
-private def writeSqlOutput(inputModel, outputPlatform, fileName) {
+private void writeSqlOutput(inputModel, outputPlatform, fileName) {
 	def sqlBuilder = outputPlatform.sqlBuilder
 	def writer = new FileWriter(fileName)
 	sqlBuilder.writer = writer
@@ -115,8 +106,31 @@ private def writeSqlOutput(inputModel, outputPlatform, fileName) {
 	writer.close()
 }
 
-private def writeXmlOutput(inputModel, fileName) {
+private void writeJdbcOutput(inputModel, outputPlatform) {
+	def params = [:]
+	def dropTablesFirst = true
+	outputPlatform.createTables(inputModel, params, dropTablesFirst, false)
+}
+
+private void writeXmlOutput(inputModel, fileName) {
 	new DatabaseIO().write(inputModel, fileName);
+}
+
+private def createDataSource(jdbc) {
+	return new BasicDataSource(url: jdbc.url, driverClassName: jdbc.driverClassName, username: jdbc.username, password: jdbc.password)
+}
+
+private def createPlatform(database, config) {
+	try {
+		def outputPlatform = PlatformFactory.createNewPlatformInstance(database)	
+		if (!outputPlatform) {
+			quit "Could not create create database model for configuration $config"
+		}
+		outputPlatform
+	}
+	catch (Exception e) {
+		quit e.message
+	}
 }
 
 private def quit(def message="") {

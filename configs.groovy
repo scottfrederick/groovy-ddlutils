@@ -8,6 +8,16 @@
   }
 }
 
+'sqlfire-test' {
+  database = 'test'
+  jdbc { 
+    url = 'jdbc:sqlfire://localhost:1527/'
+    driverClassName = 'com.vmware.sqlfire.jdbc.ClientDriver'
+    username = 'test'
+    password = 'test'
+  }
+}
+
 pgsql {
   dialect = 'postgresql'
   sqlFile = 'schema-postgres.sql'	
