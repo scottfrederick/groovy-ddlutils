@@ -16,6 +16,10 @@ def outputPlatform = getOutputPlatform outputConfig
 
 writeOutput inputModel, outputPlatform, outputConfig
 
+
+/*
+ * Parse command line arguments and return a map
+ */
 private def parseOptions(args) {
 	def cli = new CliBuilder(usage: 'ddlutil -i inputConfig -o outputConfig [-c configFile]')
 	cli.i(argName:"inputConfig", args:1, required:true, 'Input database configuration')
@@ -29,6 +33,9 @@ private def parseOptions(args) {
 	options
 }
 
+/*
+ * Parse the config script
+ */
 private def parseConfig(options) {
 	def configFileName = options.c ?: 'configs.groovy'
 	def configFile = new File(configFileName)
@@ -38,6 +45,9 @@ private def parseConfig(options) {
 	new ConfigSlurper().parse(configFile.toURL())
 }
 
+/*
+ * Get a named configuration from the config script
+ */
 private def getConfig(config, configName) {
 	def targetConfig = config[configName]
 
@@ -48,6 +58,9 @@ private def getConfig(config, configName) {
 	targetConfig
 }
 
+/*
+ * Create a DDLUtils model structure from a live database or XML file 
+ */
 private def getInputModel(inputConfig) {
 	inputConfig.with {
 	  if (jdbc) {
@@ -62,12 +75,18 @@ private def getInputModel(inputConfig) {
 	}
 }
 
+/*
+ * Read a database model from a live database
+ */
 private def readJdbcInput(jdbc, inputConfig) {
 	def dataSource = createDataSource(jdbc)
 	def inputPlatform = createPlatform dataSource, inputConfig
 	inputPlatform.readModelFromDatabase(inputConfig.database)	
 }
 
+/*
+ * Read a database model from an XML file
+ */
 private def readXmlInput(xmlFileName) {
 	def xmlFile = new File(xmlFileName)
 	if (!xmlFile.canRead()) {
@@ -76,6 +95,9 @@ private def readXmlInput(xmlFileName) {
 	new DatabaseIO().read(xmlFileName)	
 }
 
+/*
+ * Create a DDLUtils platform structure from for a live database or SQL dialect
+ */
 private def getOutputPlatform(outputConfig) {
 	outputConfig.with {
 	  if (jdbc) {
@@ -87,6 +109,9 @@ private def getOutputPlatform(outputConfig) {
 	}
 }
 
+/*
+ * Write output schema to a live database, SQL file, or XML file
+ */
 private void writeOutput(inputModel, outputPlatform, outputConfig) {
 	if (outputConfig.sqlFile) {
 		writeSqlOutput inputModel, outputPlatform, outputConfig.sqlFile 
@@ -96,6 +121,9 @@ private void writeOutput(inputModel, outputPlatform, outputConfig) {
 	}
 }
 
+/*
+ * Write output schema to a SQL file
+ */
 private void writeSqlOutput(inputModel, outputPlatform, fileName) {
 	def sqlBuilder = outputPlatform.sqlBuilder
 	def writer = new FileWriter(fileName)
@@ -106,20 +134,32 @@ private void writeSqlOutput(inputModel, outputPlatform, fileName) {
 	writer.close()
 }
 
+/*
+ * Write output schema to an XML file
+ */
+private void writeXmlOutput(inputModel, fileName) {
+	new DatabaseIO().write(inputModel, fileName);
+}
+
+/*
+ * Write output schema to a live database
+ */
 private void writeJdbcOutput(inputModel, outputPlatform) {
 	def params = [:]
 	def dropTablesFirst = true
 	outputPlatform.createTables(inputModel, params, dropTablesFirst, false)
 }
 
-private void writeXmlOutput(inputModel, fileName) {
-	new DatabaseIO().write(inputModel, fileName);
-}
-
+/*
+ * Create a JDBC DataSource 
+ */
 private def createDataSource(jdbc) {
 	return new BasicDataSource(url: jdbc.url, driverClassName: jdbc.driverClassName, username: jdbc.username, password: jdbc.password)
 }
 
+/*
+ * Create a DDLUtils platform data structure
+ */
 private def createPlatform(database, config) {
 	try {
 		def outputPlatform = PlatformFactory.createNewPlatformInstance(database)	
@@ -133,6 +173,9 @@ private def createPlatform(database, config) {
 	}
 }
 
+/*
+ * Print an error message and exit the script
+ */
 private def quit(def message="") {
 	if (message) println "ERROR: $message"
 	System.exit(1)
