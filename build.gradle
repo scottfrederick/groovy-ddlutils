@@ -1,0 +1,22 @@
+apply plugin: 'groovy'
+
+mainClassName = "DDLUtils"
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  groovy 'org.codehaus.groovy:groovy:1.8.4'
+  compile 'org.apache.ddlutils:ddlutils:1.0'
+  compile 'commons-cli:commons-cli:1.2'
+}
+
+jar {
+  configurations.compile.each { println it }
+  from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+
+  manifest {
+    attributes 'Main-Class': mainClassName
+  }
+}

@@ -1,2 +1,4 @@
 *.sql
 *.xml
+build
+.gradle
