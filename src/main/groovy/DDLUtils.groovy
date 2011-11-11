@@ -26,12 +26,12 @@ def inputConfig = getConfig config, options.i
 def outputConfig = getConfig config, options.o
 
 def inputModel = getInputModel inputConfig
-inputModel.tables.each { println "found table ${it.name}" }
+showInputModelDetails(inputModel)
 
 def outputPlatform = getOutputPlatform outputConfig
 
 writeOutput inputModel, outputPlatform, outputConfig
-
+println "Done."
 
 /*
  * Parse command line arguments and return a map
@@ -95,6 +95,7 @@ private def getInputModel(inputConfig) {
  * Read a database model from a live database
  */
 private def readJdbcInput(jdbc, inputConfig) {
+  println "Reading from JDBC data source..."
 	def dataSource = createDataSource(jdbc)
 	def inputPlatform = createPlatform dataSource, inputConfig
 	inputPlatform.readModelFromDatabase(inputConfig.database)	
@@ -104,11 +105,23 @@ private def readJdbcInput(jdbc, inputConfig) {
  * Read a database model from an XML file
  */
 private def readXmlInput(xmlFileName) {
+  println "Reading from XML file $xmlFileName..."
 	def xmlFile = new File(xmlFileName)
 	if (!xmlFile.canRead()) {
 		quit "Input file ${xmlFileName} was not found or cannot be read"
 	}
 	new DatabaseIO().read(xmlFileName)	
+}
+
+/*
+ * Show the tables found in the input model
+ */
+private def showInputModelDetails(inputModel) {
+  if (inputModel.tableCount == 0) {
+    quit "No tables found in input source"
+  }
+  println "Found ${inputModel.tableCount} tables: "
+  inputModel.tables.each { println "  ${it.name}" }
 }
 
 /*
@@ -126,7 +139,7 @@ private def getOutputPlatform(outputConfig) {
 }
 
 /*
- * Write output schema to a live database, SQL file, or XML file
+ * Write the output schema to an SQL file, an XML file, or a live database 
  */
 private void writeOutput(inputModel, outputPlatform, outputConfig) {
 	if (outputConfig.sqlFile) {
@@ -138,9 +151,10 @@ private void writeOutput(inputModel, outputPlatform, outputConfig) {
 }
 
 /*
- * Write output schema to a SQL file
+ * Write the output schema to an SQL file
  */
 private void writeSqlOutput(inputModel, outputPlatform, fileName) {
+  println "Writing SQL output to $fileName..."
 	def sqlBuilder = outputPlatform.sqlBuilder
 	def writer = new FileWriter(fileName)
 	sqlBuilder.writer = writer
@@ -151,16 +165,19 @@ private void writeSqlOutput(inputModel, outputPlatform, fileName) {
 }
 
 /*
- * Write output schema to an XML file
+ * Write the output schema to an XML file
  */
 private void writeXmlOutput(inputModel, fileName) {
+  println "Writing XML output to $fileName..."
 	new DatabaseIO().write(inputModel, fileName);
 }
 
 /*
- * Write output schema to a live database
+ * Write the output schema to a live database
+ * *** This option is a work-in-progress ***
  */
 private void writeJdbcOutput(inputModel, outputPlatform) {
+  println "Writing output to JDBC data source..."
 	def params = [:]
 	def dropTablesFirst = true
 	outputPlatform.createTables(inputModel, params, dropTablesFirst, false)
