@@ -11,8 +11,8 @@ specified SQL dialect.
 
 ### Running as a Java jar file
 
-The simples way to use Groovy-DDLUtils is to download the compiled executable jar from the [files download page][] on GitHub. 
-With Java 1.6 or greater, you can run the utility using the Java executable, like this:
+The simplest way to use Groovy-DDLUtils is to download the compiled executable jar from the [files download page][] on GitHub. 
+With Java 1.6 or greater installed, you can run the utility using the `java` executable, like this:
 
     > java -jar groovy-ddlutils-<version>.jar <command line arguments>
 
@@ -59,6 +59,20 @@ named `schema.xml` will be written to the current working directory.
 
 Names the file containing the input and output configurations. If not specified, the default file path is `configs.groovy`
 in the current working directory.
+
+Examples:
+
+    # read from the live database config 'mysql-test', write to 'schema.xml'
+    > groovy DDLUtils.groovy -i mysql-test -o xml
+     
+    # read from the live database config 'mysql-test', write to PostgreSQL SQL file 'schema.sql'
+    > groovy DDLUtils.groovy -i mysql-test -o postgresql 
+    
+    # read from 'schema.xml', write to PostgreSQL SQL file 'schema.sql'
+    > groovy DDLUtils.groovy -i xml -o postgresql 
+    
+    # read configs from the named file
+    > groovy DDLUtils.groovy -i mysql-test -o xml -c myConfig.groovy 
 
 ### Configurations
 
