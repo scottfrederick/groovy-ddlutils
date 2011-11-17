@@ -132,8 +132,8 @@ example of an SQL output configuration:
 The Groovy-DDLUtils project contains the build script necessary to build the self-contained executable jar file. To build the 
 project, first clone the repository from GitHub, then run the following command from the root of the project structure: 
 
-    > ./gradlew assemble" (Linux/Unix/OSX)
-    > gradle.bat assemble" (Windows)
+    > ./gradlew assemble (Linux/Unix/OSX)
+    > gradle.bat assemble (Windows)
 
 This command should generate the file `groovy-ddlutils-<version>.jar` in the directory `build/libs` under the project root.
 
