@@ -19,11 +19,26 @@ import org.apache.ddlutils.io.DatabaseIO;
 import org.apache.ddlutils.PlatformFactory
 import org.apache.commons.dbcp.BasicDataSource
 
+def defaultInputConfig = { configName ->
+  if (configName == 'xml') {
+    [ xmlFile: 'schema.xml' ]
+  }
+}
+
+def defaultOutputConfig = { configName ->
+  if (configName == 'xml') {
+    [ xmlFile: 'schema.xml' ]
+  }
+  else {
+    [ dialect: configName, sqlFile: 'schema.sql' ]
+  }
+}
+
 def options = parseOptions args
 
 def config = parseConfig options
-def inputConfig = getConfig config, options.i
-def outputConfig = getConfig config, options.o
+def inputConfig = getConfig config, options.i, defaultInputConfig
+def outputConfig = getConfig config, options.o, defaultOutputConfig
 
 def inputModel = getInputModel inputConfig
 showInputModelDetails(inputModel)
@@ -64,11 +79,15 @@ private def parseConfig(options) {
 /*
  * Get a named configuration from the config script
  */
-private def getConfig(config, configName) {
+private def getConfig(config, configName, defaultConfig) {
 	def targetConfig = config[configName]
 
 	if (!targetConfig) {
-		quit "Configuration name ${configName} is not valid"
+	  targetConfig = defaultConfig.call configName
+	}
+	
+	if (!targetConfig) {
+	  quit "Configuration name ${configName} is not valid"
 	}
 	
 	targetConfig

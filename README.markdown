@@ -60,7 +60,7 @@ named `schema.xml` will be written to the current working directory.
 Names the file containing the input and output configurations. If not specified, the default file path is `configs.groovy`
 in the current working directory.
 
-Examples:
+#### Examples:
 
     # read from the live database config 'mysql-test', write to 'schema.xml'
     > groovy DDLUtils.groovy -i mysql-test -o xml
