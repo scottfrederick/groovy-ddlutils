@@ -29,14 +29,16 @@ def defaultOutputConfig = { configName ->
   if (configName == 'xml') {
     [ xmlFile: 'schema.xml' ]
   }
-  else {
+  else if (PlatformFactory.isPlatformSupported(configName)) {
     [ dialect: configName, sqlFile: 'schema.sql' ]
   }
 }
 
-def options = parseOptions args
+def (cli, options) = parseOptions(args)
 
 def config = parseConfig options
+displayUsageIfNecessary cli, options, config
+
 def inputConfig = getConfig config, options.i, defaultInputConfig
 def outputConfig = getConfig config, options.o, defaultOutputConfig
 
@@ -52,16 +54,19 @@ println "Done."
  * Parse command line arguments and return a map
  */
 private def parseOptions(args) {
-	def cli = new CliBuilder(usage: 'ddlutil -i inputConfig -o outputConfig [-c configFile]')
-	cli.i(argName:"inputConfig", args:1, required:true, 'Input database configuration')
-	cli.o(argName:"outputConfig", args:1, required:true, 'Output database configuration')
-	cli.c(argName:"configFile", args:1, required:false, 'Configuration file (defaults to "configs.groovy")')
+	def cli = new CliBuilder(usage: 'ddlutil -i inputConfig -o outputConfig [-c configFile] [-h]')
+	cli.with {
+  	i longOpt:'input', argName:"inputConfig", args:1, 'Input database configuration (required)'
+  	o longOpt:'output', argName:"outputConfig", args:1, 'Output database configuration (required)'
+  	c longOpt:'config', argName:"configFile", args:1, 'Configuration file (defaults to "configs.groovy")'
+  	h longOpt:'help', argName:"help", args:0, 'Display help message and quit'
+	}
 
 	def options = cli.parse(args)
 	if (options == null) {
 	  quit()
 	}
-	options
+	[cli, options]
 }
 
 /*
@@ -76,6 +81,14 @@ private def parseConfig(options) {
 	new ConfigSlurper().parse(configFile.toURL())
 }
 
+private void displayUsageIfNecessary(cli, options, config) {
+  if (!options.i || !options.o || options.h) {
+    cli.usage()
+    println getValidConfigsMessage(config)
+    quit()
+  }
+}
+
 /*
  * Get a named configuration from the config script
  */
@@ -87,7 +100,7 @@ private def getConfig(config, configName, defaultConfig) {
 	}
 	
 	if (!targetConfig) {
-	  quit "Configuration name ${configName} is not valid"
+	  quit "Configuration name '${configName}' is not valid" + getValidConfigsMessage(config)
 	}
 	
 	targetConfig
@@ -225,6 +238,17 @@ private def createPlatform(database, config) {
 	}
 }
 
+/*
+ * Build a message containing all valid configurations and supported platforms
+ */
+private def getValidConfigsMessage(config) { """
+
+Valid named configurations: ${config.keySet()}
+
+Supported SQL schema dialects: ${PlatformFactory.supportedPlatforms.sort()}
+"""
+} 
+ 
 /*
  * Print an error message and exit the script
  */

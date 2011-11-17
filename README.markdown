@@ -37,28 +37,42 @@ directory.
 
 The format of the Groovy-DDLUtils command line is: 
 
-    > groovy DDLUtils.groovy -i <input config name> -o <output config name> [-c <configs file name>]
+    > groovy DDLUtils.groovy -i <input config name> -o <output config name> [-c <configs file name>] [-h]
 
 where: 
 
 * `-i <input database>` (required)
 
 Names the input or source database. The value of the argument must be the name of a configuration in the configuration file (see
-below), or `'xml'`. If the value is a named configuration, then that configuration will be used to read the input database schema. 
+below), or `'xml'`. 
+
+If the value is a named configuration, then that configuration will be used to read the input database schema. 
+
 If the value is `'xml'`, the script will look for a file named `schema.xml` in the current working directory. 
 
 * `-o <output database>` (required)
 
 Names an output or target database. The value of the argument must be the name of a configuration in the configuration file (see 
-below), the name of a database dialect supported by DDLUtils, or `'xml'`. If the value is a named configuration, then that 
-configuration will be used to write the output database schema. If the value is the name of a DDLUtils supported dialect, a file 
-named `schema.sql` in the selected SQL dialect will be written to the current working directory. If the value is `'xml'`, a file 
-named `schema.xml` will be written to the current working directory.
+below), the name of a database dialect supported by DDLUtils, or `'xml'`. 
+
+If the value is a named configuration, then that 
+configuration will be used to write the output database schema. 
+
+If the value is the name of a DDLUtils supported dialect, a file 
+named `schema.sql` in the selected SQL dialect will be written to the current working directory. To see a list of supported SQL
+dialects, run the script with the `-h` parameter. 
+
+If the value is `'xml'`, a file named `schema.xml` will be written to the
+current working directory.
 
 * `-c <configs file path>` (optional)
 
 Names the file containing the input and output configurations. If not specified, the default file path is `configs.groovy`
 in the current working directory.
+
+* `-h` (optional)
+
+Displays command line usage information and quits
 
 #### Examples:
 
