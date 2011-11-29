@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-import org.apache.ddlutils.model.Database
-import org.apache.ddlutils.io.DatabaseIO;
 import org.apache.ddlutils.PlatformFactory
+import org.apache.ddlutils.io.DatabaseIO
+import org.apache.ddlutils.model.Database
+import org.apache.ddlutils.platform.CreationParameters
 import org.apache.commons.dbcp.BasicDataSource
 
 def defaultInputConfig = { configName ->
@@ -174,12 +175,17 @@ private def getOutputPlatform(outputConfig) {
  * Write the output schema to an SQL file, an XML file, or a live database 
  */
 private void writeOutput(inputModel, outputPlatform, outputConfig) {
-	if (outputConfig.sqlFile) {
-		writeSqlOutput inputModel, outputPlatform, outputConfig.sqlFile 
-	}
-	else if (outputConfig.xmlFile) {
-		writeXmlOutput inputModel, outputConfig.xmlFile
-	}
+  outputConfig.with {
+    if (jdbc) {
+      writeJdbcOutput inputModel, outputPlatform, outputConfig
+    }
+  	else if (sqlFile) {
+  		writeSqlOutput inputModel, outputPlatform, outputConfig.sqlFile 
+  	}
+  	else if (xmlFile) {
+  		writeXmlOutput inputModel, outputConfig.xmlFile
+  	}
+  }
 }
 
 /*
@@ -206,24 +212,24 @@ private void writeXmlOutput(inputModel, fileName) {
 
 /*
  * Write the output schema to a live database
- * *** This option is a work-in-progress ***
  */
-private void writeJdbcOutput(inputModel, outputPlatform) {
+private void writeJdbcOutput(inputModel, outputPlatform, config) {
   println "Writing output to JDBC data source..."
-	def params = [:]
-	def dropTablesFirst = true
-	outputPlatform.createTables(inputModel, params, dropTablesFirst, false)
+	def dropTablesFirst = config.dropTablesBeforeCreation
+	def continueOnError = config.continueOnError
+	def params = buildTableCreationParameters inputModel, config
+	outputPlatform.createTables(inputModel, params, dropTablesFirst, continueOnError)
 }
 
 /*
- * Create a JDBC DataSource 
+ * Create a JDBC DataSource from configuration input
  */
 private def createDataSource(jdbc) {
 	return new BasicDataSource(url: jdbc.url, driverClassName: jdbc.driverClassName, username: jdbc.username, password: jdbc.password)
 }
 
 /*
- * Create a DDLUtils platform data structure
+ * Create a DDLUtils Platform data structure
  */
 private def createPlatform(database, config) {
 	try {
@@ -236,6 +242,50 @@ private def createPlatform(database, config) {
 	catch (Exception e) {
 		quit e.message
 	}
+}
+
+/* 
+ * Build a DDLUtils CreationParameters data structure from configuration input
+ */
+private def buildTableCreationParameters(inputModel, config) {
+	def params = new CreationParameters()
+  config.tableCreationParameters.each { tableParams ->
+    def tableName = tableParams.key
+    if (tableName == '*') {
+      inputModel.tables.each { table ->
+        addParametersForTable table, tableParams.value, params
+      }
+    }
+    else {
+      def table = getTableFromDatabase inputModel, tableName
+      addParametersForTable table, tableParams.value, params
+    }
+  }
+  params
+}
+
+/* 
+ * Add parameters for a given table to the collection of table creation parameters
+ */
+private def addParametersForTable(table, configParams, tableParams) {
+  configParams.each { param -> 
+    def paramValue = param.value
+    if (param.value.isEmpty()) {
+      paramValue = null
+    }
+    tableParams.addParameter table, param.key, null
+  }
+}
+
+/* 
+ * Get a DDLUtils Table data structure from the database model
+ */
+private def getTableFromDatabase(inputModel, tableName) {
+  def table = inputModel.findTable tableName
+  if (!table) {
+    quit "Table named $tableName in tableCreationParameters is not in the database model"
+  }
+  table
 }
 
 /*

@@ -4,8 +4,8 @@ Groovy-DDLUtils is a Groovy script that uses the [Apache DDLUtils][] library to 
 information from one database dialect to another. 
 
 The Groovy-DDLUtils script can read database schema information from a live database (using the appropriate JDBC drivers) or from 
-an XML file in the [Turbine XML format][]. The schema can then be written to a Turbine XML file or to an SQL script file in a 
-specified SQL dialect.  
+an XML file in the [Turbine XML format][]. The schema can then be written to a Turbine XML file, to an SQL script file in a 
+specified SQL dialect, or to a live database.  
 
 ## Running Groovy-DDLUtils
 
@@ -55,8 +55,7 @@ If the value is `'xml'`, the script will look for a file named `schema.xml` in t
 Names an output or target database. The value of the argument must be the name of a configuration in the configuration file (see 
 below), the name of a database dialect supported by DDLUtils, or `'xml'`. 
 
-If the value is a named configuration, then that 
-configuration will be used to write the output database schema. 
+If the value is a named configuration, then that configuration will be used to write the output database schema. 
 
 If the value is the name of a DDLUtils supported dialect, a file 
 named `schema.sql` in the selected SQL dialect will be written to the current working directory. To see a list of supported SQL
@@ -84,6 +83,9 @@ Displays command line usage information and quits
     
     # read from 'schema.xml', write to PostgreSQL SQL file 'schema.sql'
     > groovy DDLUtils.groovy -i xml -o postgresql 
+    
+    # read from the live database config 'mysql-test', write to live database config 'postgresql-test'
+    > groovy DDLUtils.groovy -i mysql-test -o postgresql-test 
     
     # read configs from the named file
     > groovy DDLUtils.groovy -i mysql-test -o xml -c myConfig.groovy 
