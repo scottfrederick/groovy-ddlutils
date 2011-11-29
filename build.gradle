@@ -1,0 +1,28 @@
+apply plugin: 'groovy'
+
+version = "0.0.2-sqlfire"
+mainClassName = "DDLUtils"
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  groovy 'org.codehaus.groovy:groovy:1.8.4'
+  compile 'commons-cli:commons-cli:1.2'
+  compile fileTree(dir: 'lib', include: '*.jar')
+}
+
+jar {
+  from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+  from { configurations.runtime.collect { it.isDirectory() ? it : zipTree(it) } }
+
+  manifest {
+    attributes 'Main-Class': mainClassName
+  }
+}
+
+task wrapper(type: Wrapper) {
+    // gradleVersion = '0.9'
+}
+

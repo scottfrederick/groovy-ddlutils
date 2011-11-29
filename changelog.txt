@@ -1,0 +1,4 @@
+Changes in version 0.0.2 (2011-11-28)
+-------------------------------------
+
+* Added the ability to write output to a live JDBC connection, including optional table creation parameters.
