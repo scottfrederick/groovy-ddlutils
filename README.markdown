@@ -113,6 +113,24 @@ connection configuration:
       }
     }
 
+When using a JDBC connection configuration to write a schema to a database, a few additional parameters can be used. The 
+`dropTablesBeforeCreation` parameter can be set to `true` to cause the tables in the schema to be dropped before attempting to
+add them. The `continueOnError` parameter can be set to `true` to cause the script to continue trying to create the schema in 
+the target database when an error is detected. Here is an example of a JDBC connection configuration with these additional 
+parameters: 
+
+    'mysql-test' {
+      database = 'test'
+      jdbc { 
+        url = 'jdbc:mysql://localhost:3306/test'
+        driverClassName = 'com.mysql.jdbc.Driver'
+        username = 'test'
+        password = 'test'
+      }
+      dropTablesBeforeCreation = true
+      continueOnError = true
+    }
+
 XML input/output configurations contain the name of an input and/or output file. Here is an example of an XML configuration:
 
     xml {
