@@ -21,18 +21,18 @@ import org.apache.ddlutils.platform.CreationParameters
 import org.apache.commons.dbcp.BasicDataSource
 
 def defaultInputConfig = { configName ->
-  if (configName == 'xml') {
-    [ xmlFile: 'schema.xml' ]
-  }
+	if (configName == 'xml') {
+		[ xmlFile: 'schema.xml' ]
+	}
 }
 
 def defaultOutputConfig = { configName ->
-  if (configName == 'xml') {
-    [ xmlFile: 'schema.xml' ]
-  }
-  else if (PlatformFactory.isPlatformSupported(configName)) {
-    [ dialect: configName, sqlFile: 'schema.sql' ]
-  }
+	if (configName == 'xml') {
+		[ xmlFile: 'schema.xml' ]
+	}
+	else if (PlatformFactory.isPlatformSupported(configName)) {
+		[ dialect: configName, sqlFile: 'schema.sql' ]
+	}
 }
 
 def (cli, options) = parseOptions(args)
@@ -57,15 +57,15 @@ println "Done."
 private def parseOptions(args) {
 	def cli = new CliBuilder(usage: 'ddlutil -i inputConfig -o outputConfig [-c configFile] [-h]')
 	cli.with {
-  	i longOpt:'input', argName:"inputConfig", args:1, 'Input database configuration (required)'
-  	o longOpt:'output', argName:"outputConfig", args:1, 'Output database configuration (required)'
-  	c longOpt:'config', argName:"configFile", args:1, 'Configuration file (defaults to "configs.groovy")'
-  	h longOpt:'help', argName:"help", args:0, 'Display help message and quit'
+		i longOpt:'input', argName:"inputConfig", args:1, 'Input database configuration (required)'
+		o longOpt:'output', argName:"outputConfig", args:1, 'Output database configuration (required)'
+		c longOpt:'config', argName:"configFile", args:1, 'Configuration file (defaults to "configs.groovy")'
+		h longOpt:'help', argName:"help", args:0, 'Display help message and quit'
 	}
 
 	def options = cli.parse(args)
 	if (options == null) {
-	  quit()
+		quit()
 	}
 	[cli, options]
 }
@@ -83,11 +83,11 @@ private def parseConfig(options) {
 }
 
 private void displayUsageIfNecessary(cli, options, config) {
-  if (!options.i || !options.o || options.h) {
-    cli.usage()
-    println getValidConfigsMessage(config)
-    quit()
-  }
+	if (!options.i || !options.o || options.h) {
+		cli.usage()
+		println getValidConfigsMessage(config)
+		quit()
+	}
 }
 
 /*
@@ -97,11 +97,11 @@ private def getConfig(config, configName, defaultConfig) {
 	def targetConfig = config[configName]
 
 	if (!targetConfig) {
-	  targetConfig = defaultConfig.call configName
+		targetConfig = defaultConfig.call configName
 	}
 	
 	if (!targetConfig) {
-	  quit "Configuration name '${configName}' is not valid" + getValidConfigsMessage(config)
+		quit "Configuration name '${configName}' is not valid" + getValidConfigsMessage(config)
 	}
 	
 	targetConfig
@@ -112,13 +112,13 @@ private def getConfig(config, configName, defaultConfig) {
  */
 private def getInputModel(inputConfig) {
 	inputConfig.with {
-	  if (jdbc) {
-		  return readJdbcInput(jdbc, inputConfig)
-	  }
-	  else if (xmlFile) {
+		if (jdbc) {
+			return readJdbcInput(jdbc, inputConfig)
+		}
+		else if (xmlFile) {
 			return readXmlInput(xmlFile)
-	  }
-	  else {
+		}
+		else {
 			quit "Input configuration does not contain a 'jdbc' or 'xmlFile' specification"
 		}
 	}
@@ -128,17 +128,17 @@ private def getInputModel(inputConfig) {
  * Read a database model from a live database
  */
 private def readJdbcInput(jdbc, inputConfig) {
-  println "Reading from JDBC data source..."
+	println "Reading from JDBC data source..."
 	def dataSource = createDataSource(jdbc)
 	def inputPlatform = createPlatform dataSource, inputConfig
-	inputPlatform.readModelFromDatabase(inputConfig.database)	
+	inputPlatform.readModelFromDatabase(inputConfig.database) 
 }
 
 /*
  * Read a database model from an XML file
  */
 private def readXmlInput(xmlFileName) {
-  println "Reading from XML file $xmlFileName..."
+	println "Reading from XML file $xmlFileName..."
 	def xmlFile = new File(xmlFileName)
 	if (!xmlFile.canRead()) {
 		quit "Input file ${xmlFileName} was not found or cannot be read"
@@ -150,11 +150,11 @@ private def readXmlInput(xmlFileName) {
  * Show the tables found in the input model
  */
 private def showInputModelDetails(inputModel) {
-  if (inputModel.tableCount == 0) {
-    quit "No tables found in input source"
-  }
-  println "Found ${inputModel.tableCount} tables: "
-  inputModel.tables.each { println "  ${it.name}" }
+	if (inputModel.tableCount == 0) {
+		quit "No tables found in input source"
+	}
+	println "Found ${inputModel.tableCount} tables: "
+	inputModel.tables.each { println "	${it.name}" }
 }
 
 /*
@@ -162,9 +162,9 @@ private def showInputModelDetails(inputModel) {
  */
 private def getOutputPlatform(outputConfig) {
 	outputConfig.with {
-	  if (jdbc) {
+		if (jdbc) {
 			createPlatform createDataSource(jdbc), outputConfig
-	  }
+		}
 		else if (dialect) {
 			createPlatform dialect, outputConfig
 		}
@@ -175,24 +175,24 @@ private def getOutputPlatform(outputConfig) {
  * Write the output schema to an SQL file, an XML file, or a live database 
  */
 private void writeOutput(inputModel, outputPlatform, outputConfig) {
-  outputConfig.with {
-    if (jdbc) {
-      writeJdbcOutput inputModel, outputPlatform, outputConfig
-    }
-  	else if (sqlFile) {
-  		writeSqlOutput inputModel, outputPlatform, outputConfig.sqlFile 
-  	}
-  	else if (xmlFile) {
-  		writeXmlOutput inputModel, outputConfig.xmlFile
-  	}
-  }
+	outputConfig.with {
+		if (jdbc) {
+			writeJdbcOutput inputModel, outputPlatform, outputConfig
+		}
+		else if (sqlFile) {
+			writeSqlOutput inputModel, outputPlatform, outputConfig.sqlFile 
+		}
+		else if (xmlFile) {
+			writeXmlOutput inputModel, outputConfig.xmlFile
+		}
+	}
 }
 
 /*
  * Write the output schema to an SQL file
  */
 private void writeSqlOutput(inputModel, outputPlatform, fileName) {
-  println "Writing SQL output to $fileName..."
+	println "Writing SQL output to $fileName..."
 	def sqlBuilder = outputPlatform.sqlBuilder
 	def writer = new FileWriter(fileName)
 	sqlBuilder.writer = writer
@@ -206,7 +206,7 @@ private void writeSqlOutput(inputModel, outputPlatform, fileName) {
  * Write the output schema to an XML file
  */
 private void writeXmlOutput(inputModel, fileName) {
-  println "Writing XML output to $fileName..."
+	println "Writing XML output to $fileName..."
 	new DatabaseIO().write(inputModel, fileName);
 }
 
@@ -214,7 +214,7 @@ private void writeXmlOutput(inputModel, fileName) {
  * Write the output schema to a live database
  */
 private void writeJdbcOutput(inputModel, outputPlatform, config) {
-  println "Writing output to JDBC data source..."
+	println "Writing output to JDBC data source..."
 	def dropTablesFirst = config.dropTablesBeforeCreation
 	def continueOnError = config.continueOnError
 	def params = buildTableCreationParameters inputModel, config
@@ -249,43 +249,43 @@ private def createPlatform(database, config) {
  */
 private def buildTableCreationParameters(inputModel, config) {
 	def params = new CreationParameters()
-  config.tableCreationParameters.each { tableParams ->
-    def tableName = tableParams.key
-    if (tableName == '*') {
-      inputModel.tables.each { table ->
-        addParametersForTable table, tableParams.value, params
-      }
-    }
-    else {
-      def table = getTableFromDatabase inputModel, tableName
-      addParametersForTable table, tableParams.value, params
-    }
-  }
-  params
+	config.tableCreationParameters.each { tableParams ->
+		def tableName = tableParams.key
+		if (tableName == '*') {
+			inputModel.tables.each { table ->
+				addParametersForTable table, tableParams.value, params
+			}
+		}
+		else {
+			def table = getTableFromDatabase inputModel, tableName
+			addParametersForTable table, tableParams.value, params
+		}
+	}
+	params
 }
 
 /* 
  * Add parameters for a given table to the collection of table creation parameters
  */
 private def addParametersForTable(table, configParams, tableParams) {
-  configParams.each { param -> 
-    def paramValue = param.value
-    if (param.value.isEmpty()) {
-      paramValue = null
-    }
-    tableParams.addParameter table, param.key, null
-  }
+	configParams.each { param -> 
+		def paramValue = param.value
+		if (param.value.isEmpty()) {
+			paramValue = null
+		}
+		tableParams.addParameter table, param.key, null
+	}
 }
 
 /* 
  * Get a DDLUtils Table data structure from the database model
  */
 private def getTableFromDatabase(inputModel, tableName) {
-  def table = inputModel.findTable tableName
-  if (!table) {
-    quit "Table named $tableName in tableCreationParameters is not in the database model"
-  }
-  table
+	def table = inputModel.findTable tableName
+	if (!table) {
+		quit "Table named $tableName in tableCreationParameters is not in the database model"
+	}
+	table
 }
 
 /*
