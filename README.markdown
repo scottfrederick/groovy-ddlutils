@@ -7,6 +7,8 @@ The Groovy-DDLUtils script can read database schema information from a live data
 an XML file in the [Turbine XML format][]. The schema can then be written to a Turbine XML file, to an SQL script file in a 
 specified SQL dialect, or to a live database.  
 
+Questions, comments, or feedback can be sent to [@scottyfred](https://twitter.com/scottyfred).
+
 ## Running Groovy-DDLUtils
 
 ### Running as a Java jar file
@@ -71,7 +73,7 @@ in the current working directory.
 
 * `-h` (optional)
 
-Displays command line usage information and quits
+Displays command line usage information along with a list of supported SQL dialects, and quits.
 
 #### Examples:
 
@@ -144,6 +146,8 @@ example of an SQL output configuration:
       dialect = 'MySQL'
       sqlFile = '/path/to/schema-mysql.sql'	
     }
+
+To see a list of supported SQL dialects, run the script with the `-h` option. 
 
 ## Building and customizing
 
